@@ -18,6 +18,10 @@
     "mocha-phantomjs": "*",
     "mocha": "*",
     "chai": "*",
-    "coffee-script": "*"
+    "coffee-script": "*",
+    "grunt": "~0.4.1",
+    "grunt-contrib-uglify": "~0.2.4",
+    "grunt-contrib-less": "~0.7.0",
+    "grunt-less": "~0.1.7"
   }
 }

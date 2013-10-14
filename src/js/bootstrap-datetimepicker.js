@@ -53,9 +53,15 @@
       this.pickDate = options.pickDate;
       this.pickTime = options.pickTime;
       this.isInput = this.$element.is('input');
+      this.defaultToPickTime = options.defaultToTimePicker;
+      this.minuteIncrement = options.minuteIncrement || 3;
       this.component = false;
+      this.clearComponent = false;
       if (this.$element.find('.input-append') || this.$element.find('.input-prepend'))
-          this.component = this.$element.find('.add-on');
+      {
+          this.component = this.$element.find('.add-on [data-date-icon]').parent();
+          this.clearComponent = this.$element.find('.add-on [data-clear-icon]').parent();
+      }
       this.format = options.format;
       if (!this.format) {
         if (this.isInput) this.format = this.$element.data('format');
@@ -77,6 +83,7 @@
         icon.removeClass(this.timeIcon);
         icon.addClass(this.dateIcon);
       }
+
       this.widget = $(getTemplate(this.timeIcon, options.pickDate, options.pickTime, options.pick12HourFormat, options.pickSeconds, options.collapse)).appendTo('body');
       this.minViewMode = options.minViewMode||this.$element.data('date-minviewmode')||0;
       if (typeof this.minViewMode === 'string') {
@@ -134,6 +141,10 @@
         e.stopPropagation();
         e.preventDefault();
       }
+    },
+    clear: function(e) {
+        this.setDate(null, 'date');
+        return false;
     },
 
     disable: function(){
@@ -498,10 +509,10 @@
       var current = 0;
       for (var i = 0; i < 5; i++) {
         html += '<tr>';
-        for (var j = 0; j < 4; j += 1) {
+        for (var j = 0; j < 4 && current < 60; j += 1) {
           var c = current.toString();
           html += '<td class="minute">' + padLeft(c, 2, '0') + '</td>';
-          current += 3;
+          current += this.minuteIncrement;
         }
         html += '</tr>';
       }
@@ -961,7 +972,9 @@
       this.widget.on('click', '[data-action]', $.proxy(this.doAction, this));
       this.widget.on('mousedown', $.proxy(this.stopEvent, this));
       if (this.pickDate && this.pickTime) {
-        this.widget.on('click.togglePicker', '.accordion-toggle', function(e) {
+       
+        var togglePickerAction = 
+       this.widget.on('click.togglePicker', '.accordion-toggle', function(e) {
           e.stopPropagation();
           var $this = $(this);
           var $parent = $this.closest('ul');
@@ -974,9 +987,10 @@
             expanded.collapse('hide');
             closed.collapse('show')
             $this.find('i').toggleClass(self.timeIcon + ' ' + self.dateIcon);
-            self.$element.find('.add-on i').toggleClass(self.timeIcon + ' ' + self.dateIcon);
+            self.$element.find('.add-on i[data-date-icon]').toggleClass(self.timeIcon + ' ' + self.dateIcon);
           }
         });
+
       }
       if (this.isInput) {
         this.$element.on({
@@ -1001,8 +1015,14 @@
         }
         if (this.component){
           this.component.on('click', $.proxy(this.show, this));
+          this.$element.on('click', $.proxy(this.show, this));
         } else {
           this.$element.on('click', $.proxy(this.show, this));
+        }
+
+        if(this.clearComponent)
+        {
+          this.clearComponent.on('click', $.proxy(this.clear, this));
         }
       }
     },
