@@ -83,8 +83,16 @@
         icon.removeClass(this.timeIcon);
         icon.addClass(this.dateIcon);
       }
+      if(this.defaultToPickTime) {
+        icon.removeClass(this.dateIcon);
+        icon.addClass(this.timeIcon);
+        this.widget = $(getTemplate(this.dateIcon, options.pickDate, options.pickTime, options.pick12HourFormat, options.pickSeconds, options.collapse, true)).appendTo('body');
+      }
+      else {
+        this.widget = $(getTemplate(this.timeIcon, options.pickDate, options.pickTime, options.pick12HourFormat, options.pickSeconds, options.collapse, false)).appendTo('body');
+      }
 
-      this.widget = $(getTemplate(this.timeIcon, options.pickDate, options.pickTime, options.pick12HourFormat, options.pickSeconds, options.collapse)).appendTo('body');
+      
       this.minViewMode = options.minViewMode||this.$element.data('date-minviewmode')||0;
       if (typeof this.minViewMode === 'string') {
         switch (this.minViewMode) {
@@ -137,6 +145,7 @@
         date: this._date
       });
       this._attachDatePickerGlobalEvents();
+      
       if (e) {
         e.stopPropagation();
         e.preventDefault();
@@ -144,6 +153,8 @@
     },
     clear: function(e) {
         this.setDate(null, 'date');
+        this.notifyChange();
+        this.showMode();
         return false;
     },
 
@@ -649,6 +660,10 @@
     },
 
     actions: {
+      close: function(e){
+        this.setValue(this._date);
+        this.widget.hide();
+      },
       incrementHours: function(e) {
         this._date.setUTCHours(this._date.getUTCHours() + 1);
       },
@@ -1166,22 +1181,23 @@
     else return Array(l - s.length + 1).join(c || ' ') + s;
   }
 
-  function getTemplate(timeIcon, pickDate, pickTime, is12Hours, showSeconds, collapse) {
+  function getTemplate(icon, pickDate, pickTime, is12Hours, showSeconds, collapse, defaultToPickTime) {
     if (pickDate && pickTime) {
       return (
         '<div class="bootstrap-datetimepicker-widget dropdown-menu">' +
           '<ul>' +
-            '<li' + (collapse ? ' class="collapse in"' : '') + '>' +
+            '<li' + (collapse ? ' class="collapse' + (!defaultToPickTime ? ' in"' : '"') : '') + '>' +
               '<div class="datepicker">' +
                 DPGlobal.template +
               '</div>' +
             '</li>' +
-            '<li class="picker-switch accordion-toggle"><a><i class="' + timeIcon + '"></i></a></li>' +
-            '<li' + (collapse ? ' class="collapse"' : '') + '>' +
+            '<li class="picker-switch accordion-toggle"><a><i class="' + icon + '"></i></a></li>' +
+            '<li' + (collapse ? ' class="collapse' + (defaultToPickTime ? ' in"' : '"')  : '') + '>' +
               '<div class="timepicker">' +
                 TPGlobal.getTemplate(is12Hours, showSeconds) +
               '</div>' +
             '</li>' +
+            '<li class="ok picker-switch" data-action="close"><a><i class="icon-ok"></i></a></li>' +
           '</ul>' +
         '</div>'
       );
